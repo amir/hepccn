@@ -16,6 +16,7 @@ import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core ((<+>), hLimit, str, vBox, vLimit, withAttr)
 import qualified Brick.Widgets.List as L
 import Data.List (filter)
+import Data.Maybe (catMaybes)
 import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 
@@ -31,17 +32,17 @@ customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
 
 appEvent ::
-     L.List () Connection
+     L.List () String
   -> T.BrickEvent () e
-  -> T.EventM () (T.Next (L.List () Connection))
+  -> T.EventM () (T.Next (L.List () String))
 appEvent l (T.VtyEvent e) =
   case e of
     V.EvKey V.KEsc [] -> M.halt l
     ev -> M.continue =<< L.handleListEvent ev l
 appEvent l _ = M.continue l
 
-initialState :: [Connection] -> L.List () Connection
-initialState conns = L.list () (Vec.fromList $ filter isHttps conns) 1
+initialState :: [String] -> L.List () String
+initialState conns = L.list () (Vec.fromList conns) 1
 
 listDrawElement :: (Show a) => Bool -> a -> Widget ()
 listDrawElement sel a =
@@ -60,7 +61,7 @@ theMap =
     , (customAttr, fg V.cyan)
     ]
 
-theApp :: M.App (L.List () Connection) e ()
+theApp :: M.App (L.List () String) e ()
 theApp =
   M.App
     { M.appDraw = drawUI
@@ -74,5 +75,8 @@ main :: IO ()
 main = do
   conns <- connections
   case conns of
-    Right c -> void $ M.defaultMain theApp (initialState c)
+    Right cs -> do
+      names <- mapM (getHostServiceName . remote) (filter isHttps cs)
+      cns <- mapM getCommonName names
+      void $ M.defaultMain theApp (initialState (catMaybes cns))
     Left e -> putStrLn $ show e

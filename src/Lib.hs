@@ -4,6 +4,7 @@ module Lib
   , getCommonName
   , regularParse
   , connectionParser
+  , getHostServiceName
   , isHttps
   ) where
 
@@ -100,9 +101,13 @@ isHttps' (Network.Socket.SockAddrInet portNumber _)
   | portNumber == 443 = True
   | portNumber == 8443 = True
   | otherwise = False
+isHttps' _ = False
 
 isHttps :: Connection -> Bool
 isHttps (Connection _ _ r) = isHttps' r
+
+getHostServiceName :: Network.Socket.SockAddr -> IO (Maybe String, Maybe String)
+getHostServiceName = getNameInfo [NI_NUMERICHOST, NI_NUMERICSERV] True True
 
 hints =
   defaultHints
@@ -111,9 +116,9 @@ hints =
 newSock :: Network.Socket.AddrInfo -> IO Network.Socket.Socket
 newSock i = socket (addrFamily i) (addrSocketType i) (addrProtocol i)
 
-getCommonName :: String -> String -> IO (Maybe String)
-getCommonName hostName serviceName = do
-  addr:_ <- getAddrInfo (Just hints) (Just hostName) (Just serviceName)
+getCommonName :: (Maybe String, Maybe String) -> IO (Maybe String)
+getCommonName (hostName, serviceName) = do
+  addr:_ <- getAddrInfo (Just hints) hostName serviceName
   cont <- context
   sock <- newSock addr
   Network.Socket.connect sock (addrAddress addr)
