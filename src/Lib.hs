@@ -4,6 +4,7 @@ module Lib
   , getCommonName
   , regularParse
   , connectionParser
+  , isHttps
   ) where
 
 import Data.List (find)
@@ -36,7 +37,11 @@ data Connection = Connection
   { state :: State
   , local :: SockAddr
   , remote :: SockAddr
-  } deriving (Show)
+  }
+
+instance Show Connection where
+  show (Connection state local remote) =
+    "[" ++ show state ++ "] " ++ show local ++ " -> " ++ show remote
 
 regularParse :: Parser a -> String -> Either ParseError a
 regularParse p = parse p ""
@@ -89,6 +94,15 @@ connections :: IO (Either ParseError [Connection])
 connections = parseFromFile ignoreFirstLine "/proc/net/tcp"
   where
     ignoreFirstLine = manyTill anyChar newline *> connectionsParser
+
+isHttps' :: Network.Socket.SockAddr -> Bool
+isHttps' (Network.Socket.SockAddrInet portNumber _)
+  | portNumber == 443 = True
+  | portNumber == 8443 = True
+  | otherwise = False
+
+isHttps :: Connection -> Bool
+isHttps (Connection _ _ r) = isHttps' r
 
 hints =
   defaultHints

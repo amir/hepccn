@@ -40,6 +40,8 @@ executables:
     dependencies:
     - hepccn
     - brick
+    - vty
+    - vector
 
 tests:
   hepccn-test:
