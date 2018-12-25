@@ -73,10 +73,7 @@ theApp =
 
 main :: IO ()
 main = do
-  conns <- connections
-  case conns of
-    Right cs -> do
-      names <- mapM (getHostServiceName . remote) (filter isHttps cs)
-      cns <- mapM getCommonName names
-      void $ M.defaultMain theApp (initialState (catMaybes cns))
-    Left e -> putStrLn $ show e
+  cs <- connections
+  names <- mapM (getHostServiceName . remote) (filter isHttps cs)
+  cns <- mapM getCommonName names
+  void $ M.defaultMain theApp (initialState (catMaybes cns))

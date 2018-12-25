@@ -28,6 +28,9 @@ library:
   - network
   - parsec
   - HsOpenSSL
+  - bytestring
+  - base16-bytestring
+  - binary
 
 executables:
   hepccn-exe:
