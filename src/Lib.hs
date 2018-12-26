@@ -9,10 +9,7 @@ module Lib
   ) where
 
 import Data.Binary.Get
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Base16 as Base16
 import Data.ByteString.Lazy (fromStrict, toStrict)
-import qualified Data.ByteString.Lazy.Char8 as Char8
 import Data.List (find)
 import Data.Word
 import Network.Socket
@@ -23,6 +20,10 @@ import Text.Parsec (ParseError, char, count, endBy, newline, parse)
 import Text.Parsec.Char (anyChar, hexDigit)
 import Text.Parsec.Combinator (many1, manyTill)
 import Text.Parsec.String (Parser, parseFromFile)
+
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Base16 as Base16
+import qualified Data.ByteString.Lazy.Char8 as Char8
 
 data State
   = Established
@@ -129,9 +130,9 @@ connections = do
   tcp <- connections' "/proc/net/tcp"
   tcp6 <- connections' "/proc/net/tcp6"
   case (tcp, tcp6) of
-    (Right a,Right b) -> return $ concat [a,b]
-    (Left _,Right b) -> return b
-    (Right a,Left _) -> return a
+    (Right a, Right b) -> return $ concat [a, b]
+    (Left _, Right b) -> return b
+    (Right a, Left _) -> return a
     _ -> return []
 
 isHttps' :: Network.Socket.SockAddr -> Bool
@@ -161,10 +162,10 @@ newSock i = socket (addrFamily i) (addrSocketType i) (addrProtocol i)
 getCommonName :: (Maybe String, Maybe String) -> IO (Maybe String)
 getCommonName (hostName, serviceName) = do
   addr:_ <- getAddrInfo (Just hints) hostName serviceName
-  cont <- context
+  ctx <- context
   sock <- newSock addr
   Network.Socket.connect sock (addrAddress addr)
-  conn <- connection cont sock
+  conn <- connection ctx sock
   OpenSSL.Session.connect conn
   cert <- getPeerCertificate conn
   case cert of

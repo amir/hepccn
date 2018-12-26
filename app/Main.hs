@@ -3,20 +3,21 @@
 
 module Main where
 
-import Control.Monad (void)
 import Lib
+
+import Brick.Types (Widget)
+import Brick.Util (fg, on)
+import Brick.Widgets.Core ((<+>), hLimit, str, vBox, vLimit, withAttr)
+import Control.Monad (void)
+import Data.List (filter, nub)
+import Data.Maybe (catMaybes)
 
 import qualified Brick.AttrMap as A
 import qualified Brick.Main as M
 import qualified Brick.Types as T
-import Brick.Types (Widget)
-import Brick.Util (fg, on)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
-import Brick.Widgets.Core ((<+>), hLimit, str, vBox, vLimit, withAttr)
 import qualified Brick.Widgets.List as L
-import Data.List (filter)
-import Data.Maybe (catMaybes)
 import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
 
@@ -75,5 +76,5 @@ main :: IO ()
 main = do
   cs <- connections
   names <- mapM (getHostServiceName . remote) (filter isHttps cs)
-  cns <- mapM getCommonName names
+  cns <- mapM getCommonName (nub names)
   void $ M.defaultMain theApp (initialState (catMaybes cns))
