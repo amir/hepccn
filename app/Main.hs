@@ -43,7 +43,7 @@ appEvent l (T.VtyEvent e) =
 appEvent l _ = M.continue l
 
 initialState :: [String] -> L.List () String
-initialState conns = L.list () (Vec.fromList conns) 1
+initialState conns = L.list () (Vec.fromList (filter (/= "invalid2.invalid") conns)) 1
 
 listDrawElement :: (Show a) => Bool -> a -> Widget ()
 listDrawElement sel a =
